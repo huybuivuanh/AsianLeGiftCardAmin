@@ -1,15 +1,15 @@
 export default {
   expo: {
-    name: "AsianLeGiftCardAmin",
+    name: "Asian Le Gift Card",
     slug: "AsianLeGiftCardAmin",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/images/icon.png",
+    icon: "./assets/Asian Le Gift Card.png",
     scheme: "asianlegiftcardamin",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     splash: {
-      image: "./assets/images/splash-icon.png",
+      image: "./assets/Asian Le Gift Card.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff",
     },
@@ -18,7 +18,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/adaptive-icon.png",
+        foregroundImage: "./assets/Asian Le Gift Card.png",
         backgroundColor: "#ffffff",
       },
       edgeToEdgeEnabled: true,
@@ -27,7 +27,7 @@ export default {
     web: {
       bundler: "metro",
       output: "static",
-      favicon: "./assets/images/favicon.png",
+      favicon: "./assets/Asian Le Gift Card.png",
     },
     plugins: ["expo-router", "expo-camera"],
     experiments: {
