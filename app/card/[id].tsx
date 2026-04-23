@@ -2,13 +2,10 @@ import BalanceInput from "@/components/BalanceInput";
 import QRDisplay from "@/components/QRDisplay";
 import { deleteCard, getCard, updateCard } from "@/lib/cards";
 import { GiftCard } from "@/lib/types";
-import { HeaderBackButton } from "@react-navigation/elements";
 import { useNavigation } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import type { ComponentProps } from "react";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Platform,
   ScrollView,
@@ -27,7 +24,6 @@ export default function CardDetailScreen() {
   const [balance, setBalance] = useState("");
   const [balanceError, setBalanceError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -44,23 +40,13 @@ export default function CardDetailScreen() {
       } catch {
         Alert.alert("Error", "Failed to load card.");
         router.back();
-      } finally {
-        setLoading(false);
       }
     })();
   }, [id]);
 
   useEffect(() => {
-    navigation.setOptions({
-      title: card?.label || "Card Detail",
-      headerLeft: (props: ComponentProps<typeof HeaderBackButton>) => (
-        <HeaderBackButton
-          {...props}
-          onPress={() => router.replace("/")}
-        />
-      ),
-    });
-  }, [card, navigation, router]);
+    navigation.setOptions({ title: "Card Details" });
+  }, [card, navigation]);
 
   const handleSave = async () => {
     const amount = parseFloat(balance);
@@ -72,7 +58,7 @@ export default function CardDetailScreen() {
     setSaving(true);
     try {
       await updateCard(id, { label: label.trim(), balance: amount });
-      router.back();
+      router.dismiss();
     } catch {
       Alert.alert("Error", "Failed to save changes.");
     } finally {
@@ -89,7 +75,7 @@ export default function CardDetailScreen() {
       (async () => {
         try {
           await deleteCard(id);
-          router.back();
+          router.dismiss();
         } catch {
           Alert.alert("Error", "Failed to delete card.");
         }
@@ -105,7 +91,7 @@ export default function CardDetailScreen() {
         onPress: async () => {
           try {
             await deleteCard(id);
-            router.back();
+            router.dismiss();
           } catch {
             Alert.alert("Error", "Failed to delete card.");
           }
@@ -113,9 +99,6 @@ export default function CardDetailScreen() {
       },
     ]);
   };
-
-  if (loading) return <ActivityIndicator className="flex-1" size="large" />;
-  if (!card) return null;
 
   return (
     <ScrollView
@@ -133,27 +116,33 @@ export default function CardDetailScreen() {
 
       <QRDisplay cardId={id} />
 
-      <BalanceInput value={balance} onChange={setBalance} error={balanceError} />
+      <BalanceInput
+        value={balance}
+        onChange={setBalance}
+        error={balanceError}
+      />
 
       <View className="mb-3">
         <Text className="text-xs text-gray-400">Original Balance</Text>
-        <Text className="text-base mt-0.5">${card.originalBalance.toFixed(2)}</Text>
+        <Text className="text-base mt-0.5">
+          {card ? `$${card.originalBalance.toFixed(2)}` : "—"}
+        </Text>
       </View>
       <View className="mb-3">
         <Text className="text-xs text-gray-400">Card ID</Text>
-        <Text className="text-xs text-gray-300 mt-0.5">{card.id}</Text>
+        <Text className="text-xs text-gray-300 mt-0.5">{id}</Text>
       </View>
       <View className="mb-3">
         <Text className="text-xs text-gray-400">Created</Text>
         <Text className="text-base mt-0.5">
-          {card.createdAt?.toDate().toLocaleDateString() ?? "—"}
+          {card?.createdAt.toDate().toLocaleDateString() ?? "—"}
         </Text>
       </View>
 
       <TouchableOpacity
-        className={`bg-blue-600 py-3.5 rounded-lg items-center mt-2 ${saving ? "opacity-60" : ""}`}
+        className={`bg-blue-600 py-3.5 rounded-lg items-center mt-2 ${saving || !card ? "opacity-60" : ""}`}
         onPress={handleSave}
-        disabled={saving}
+        disabled={saving || !card}
       >
         <Text className="text-white font-bold text-base">
           {saving ? "Saving..." : "Save"}
@@ -164,7 +153,9 @@ export default function CardDetailScreen() {
         className="mt-3 py-3.5 rounded-lg items-center border border-red-500"
         onPress={handleDelete}
       >
-        <Text className="text-red-500 font-semibold text-base">Delete Card</Text>
+        <Text className="text-red-500 font-semibold text-base">
+          Delete Card
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );

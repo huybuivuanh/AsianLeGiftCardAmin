@@ -30,12 +30,14 @@ export default function ScanScreen() {
     }, []),
   );
 
-  const handleBarCodeScanned = async ({ data }: { data: string }) => {
+  const handleBarCodeScanned = ({ data }: { data: string }) => {
     if (scanned) return;
     setScanned(true);
 
     const segments = data.split("/");
     const id = segments[segments.length - 1];
+    // Dismiss the modal first so card/[id] opens in the main stack, not inside the modal
+    router.dismiss();
     router.push(`/card/${id}`);
   };
 
