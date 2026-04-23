@@ -68,9 +68,11 @@ export default function CardListScreen() {
 
   const filteredSorted = useMemo(() => {
     const q = search.toLowerCase().trim();
-    let list = cards.filter((c) =>
-      (c.label || "Unnamed card").toLowerCase().includes(q),
-    );
+    let list = cards.filter((c) => {
+      if (!q) return true;
+      const label = (c.label || "Unnamed card").toLowerCase();
+      return label.includes(q) || c.id.toLowerCase().includes(q);
+    });
     list = list.filter((c) => giftCardMatchesListFilter(c, filter));
     list = [...list].sort((a, b) => {
       const aMs =
@@ -90,7 +92,7 @@ export default function CardListScreen() {
     <View className="flex-1 bg-gray-100">
       <TextInput
         className="mx-3 my-3 px-3 py-2.5 bg-white rounded-lg border border-gray-200 text-base"
-        placeholder="Search by label..."
+        placeholder="Search by label or ID..."
         value={search}
         onChangeText={setSearch}
         clearButtonMode="while-editing"
