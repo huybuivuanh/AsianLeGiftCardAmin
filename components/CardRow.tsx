@@ -31,6 +31,7 @@ export default function CardRow({ card, onPress }: Props) {
         >
           {card.label || "Unnamed card"}
         </Text>
+        <Text className="text-xs text-gray-400 mt-0.5">ID: {card.id}</Text>
         <Text className="text-xs text-gray-400 mt-0.5">
           Created: {card.createdAt?.toDate().toLocaleDateString() ?? "—"}
         </Text>
@@ -41,7 +42,7 @@ export default function CardRow({ card, onPress }: Props) {
 
       <View className="items-end">
         <Text
-          className={`text-lg font-extrabold ${isDepleted ? "text-gray-700" : "text-blue-700"}`}
+          className={`text-lg font-extrabold ${isDepleted || isUnused ? "text-gray-700" : "text-blue-700"}`}
         >
           ${card.balance.toFixed(2)}
         </Text>

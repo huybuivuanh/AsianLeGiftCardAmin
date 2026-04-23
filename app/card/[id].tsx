@@ -2,8 +2,10 @@ import BalanceInput from "@/components/BalanceInput";
 import QRDisplay from "@/components/QRDisplay";
 import { deleteCard, getCard, updateCard } from "@/lib/cards";
 import { GiftCard } from "@/lib/types";
+import { HeaderBackButton } from "@react-navigation/elements";
 import { useNavigation } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import type { ComponentProps } from "react";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -49,10 +51,16 @@ export default function CardDetailScreen() {
   }, [id]);
 
   useEffect(() => {
-    if (card) {
-      navigation.setOptions({ title: card.label || "Card Detail" });
-    }
-  }, [card, navigation]);
+    navigation.setOptions({
+      title: card?.label || "Card Detail",
+      headerLeft: (props: ComponentProps<typeof HeaderBackButton>) => (
+        <HeaderBackButton
+          {...props}
+          onPress={() => router.replace("/")}
+        />
+      ),
+    });
+  }, [card, navigation, router]);
 
   const handleSave = async () => {
     const amount = parseFloat(balance);
