@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Asian Le Gift Card",
+    "slug": "AsianLeGiftCardAmin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/Asian Le Gift Card.png",
+    "scheme": "asianlegiftcardamin",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/Asian Le Gift Card.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/Asian Le Gift Card.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/Asian Le Gift Card.png"
+    },
+    "plugins": ["expo-router", "expo-camera"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "95fd64a3-693e-4dc4-8ec4-f3d70030b3f6"
+      }
+    }
+  }
+}
