@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -72,6 +73,22 @@ export default function CardDetailScreen() {
   };
 
   const handleDelete = () => {
+    if (!id) return;
+
+    if (Platform.OS === "web") {
+      const ok = window.confirm("Are you sure you want to delete this card?");
+      if (!ok) return;
+      (async () => {
+        try {
+          await deleteCard(id);
+          router.back();
+        } catch {
+          Alert.alert("Error", "Failed to delete card.");
+        }
+      })();
+      return;
+    }
+
     Alert.alert("Delete Card", "Are you sure you want to delete this card?", [
       { text: "Cancel", style: "cancel" },
       {

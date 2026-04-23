@@ -7,7 +7,8 @@ type Props = {
 };
 
 export default function CardRow({ card, onPress }: Props) {
-  const isDepleted = card.balance === 0 || card.originalBalance === 0;
+  const isDepleted = card.balance === 0 && card.originalBalance > 0;
+  const isUnused = card.balance === 0 && card.originalBalance === 0;
   return (
     <TouchableOpacity
       className={`my-1.5 rounded-2xl bg-white px-3 py-2.5 border border-gray-200 shadow-sm flex-row items-center ${isDepleted ? "opacity-50" : ""}`}
@@ -19,11 +20,9 @@ export default function CardRow({ card, onPress }: Props) {
           <Text className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
             Gift Card
           </Text>
-          {isDepleted ? (
-            <Text className="ml-2 text-[11px] font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
-              Depleted
-            </Text>
-          ) : null}
+          <Text className="ml-2 text-[11px] font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+            {isDepleted ? "Depleted" : isUnused ? "Unused" : "Active"}
+          </Text>
         </View>
 
         <Text
@@ -33,7 +32,10 @@ export default function CardRow({ card, onPress }: Props) {
           {card.label || "Unnamed card"}
         </Text>
         <Text className="text-xs text-gray-400 mt-0.5">
-          {card.createdAt?.toDate().toLocaleDateString() ?? ""}
+          Created: {card.createdAt?.toDate().toLocaleDateString() ?? "—"}
+        </Text>
+        <Text className="text-xs text-gray-400 mt-0.5">
+          Updated: {card.updatedAt?.toDate().toLocaleDateString() ?? "—"}
         </Text>
       </View>
 

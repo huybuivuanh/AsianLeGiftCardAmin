@@ -19,18 +19,19 @@ const COL = "giftCards";
 export async function getCards(): Promise<GiftCard[]> {
   const q = query(collection(db, COL), orderBy("createdAt", "desc"));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as GiftCard));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as GiftCard);
 }
 
 export function subscribeCards(
   onUpdate: (cards: GiftCard[]) => void,
-  onError: (e: Error) => void
+  onError: (e: Error) => void,
 ): () => void {
   const q = query(collection(db, COL), orderBy("createdAt", "desc"));
   return onSnapshot(
     q,
-    (snap) => onUpdate(snap.docs.map((d) => ({ id: d.id, ...d.data() } as GiftCard))),
-    onError
+    (snap) =>
+      onUpdate(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as GiftCard)),
+    onError,
   );
 }
 
@@ -41,7 +42,7 @@ export async function getCard(id: string): Promise<GiftCard | null> {
 }
 
 export async function createCard(
-  data: Pick<GiftCard, "label" | "balance">
+  data: Pick<GiftCard, "label" | "balance">,
 ): Promise<string> {
   const ref = await addDoc(collection(db, COL), {
     label: data.label || "",
@@ -49,18 +50,25 @@ export async function createCard(
     originalBalance: data.balance,
     archived: false,
     createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
   });
   return ref.id;
 }
 
 export async function updateCard(
   id: string,
-  data: Partial<Pick<GiftCard, "label" | "balance">>
+  data: Partial<Pick<GiftCard, "label" | "balance" | "archived">>,
 ): Promise<void> {
   await updateDoc(doc(db, COL, id), { ...data, updatedAt: serverTimestamp() });
 }
 
 export async function deleteCard(id: string): Promise<void> {
   await deleteDoc(doc(db, COL, id));
+}
+
+export async function archiveCard(id: string): Promise<void> {
+  await updateCard(id, { archived: true });
+}
+
+export async function unarchiveCard(id: string): Promise<void> {
+  await updateCard(id, { archived: false });
 }

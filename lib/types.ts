@@ -6,6 +6,6 @@ export type GiftCard = {
   balance: number;
   originalBalance: number;
   archived: boolean;
-  createdAt: Timestamp | null;
-  updatedAt: Timestamp | null;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
 };
