@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
@@ -19,6 +20,18 @@ export async function getCards(): Promise<GiftCard[]> {
   const q = query(collection(db, COL), orderBy("createdAt", "desc"));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as GiftCard));
+}
+
+export function subscribeCards(
+  onUpdate: (cards: GiftCard[]) => void,
+  onError: (e: Error) => void
+): () => void {
+  const q = query(collection(db, COL), orderBy("createdAt", "desc"));
+  return onSnapshot(
+    q,
+    (snap) => onUpdate(snap.docs.map((d) => ({ id: d.id, ...d.data() } as GiftCard))),
+    onError
+  );
 }
 
 export async function getCard(id: string): Promise<GiftCard | null> {

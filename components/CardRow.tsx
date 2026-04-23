@@ -10,7 +10,7 @@ export default function CardRow({ card, onPress }: Props) {
   const isDepleted = card.balance === 0;
   return (
     <TouchableOpacity
-      className={`flex-row justify-between items-center px-4 py-3.5 border-b border-gray-200 bg-white ${isDepleted ? "opacity-40" : ""}`}
+      className={`flex-row justify-between items-center px-2 py-3.5 border-b border-gray-200 bg-white ${isDepleted ? "opacity-40" : ""}`}
       onPress={onPress}
       activeOpacity={0.7}
     >

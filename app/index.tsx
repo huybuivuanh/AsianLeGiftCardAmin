@@ -1,9 +1,9 @@
 import CardRow from "@/components/CardRow";
-import { getCards } from "@/lib/cards";
+import { subscribeCards } from "@/lib/cards";
 import { GiftCard } from "@/lib/types";
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -18,20 +18,13 @@ export default function CardListScreen() {
   const navigation = useNavigation();
   const [cards, setCards] = useState<GiftCard[]>([]);
   const [search, setSearch] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      const data = await getCards();
-      setCards(data);
-    } catch {
-      Alert.alert("Error", "Failed to load cards.");
-    }
-  }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    const unsubscribe = subscribeCards(setCards, () =>
+      Alert.alert("Error", "Failed to load cards."),
+    );
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     navigation.setOptions({
@@ -47,14 +40,8 @@ export default function CardListScreen() {
     });
   }, [navigation, router]);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  };
-
   const filtered = cards.filter((c) =>
-    (c.label || "Unnamed card").toLowerCase().includes(search.toLowerCase())
+    (c.label || "Unnamed card").toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -67,13 +54,15 @@ export default function CardListScreen() {
         clearButtonMode="while-editing"
       />
       <FlatList
+        className="px-3"
         data={filtered}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <CardRow card={item} onPress={() => router.push(`/card/${item.id}`)} />
+          <CardRow
+            card={item}
+            onPress={() => router.push(`/card/${item.id}`)}
+          />
         )}
-        onRefresh={onRefresh}
-        refreshing={refreshing}
         ListEmptyComponent={
           <Text className="text-center text-gray-400 mt-10 text-base">
             No cards found.

@@ -1,7 +1,13 @@
 import { QR_BASE_URL } from "@/lib/config";
 import * as Sharing from "expo-sharing";
 import { useRef } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { captureRef } from "react-native-view-shot";
 
@@ -10,8 +16,10 @@ type Props = {
 };
 
 export default function QRDisplay({ cardId }: Props) {
+  const { width } = useWindowDimensions();
   const qrRef = useRef<View>(null);
   const qrValue = `${QR_BASE_URL}/${cardId}`;
+  const qrSize = Math.max(150, Math.min(300, Math.floor(width - 128)));
 
   const handleDownload = async () => {
     try {
@@ -29,7 +37,7 @@ export default function QRDisplay({ cardId }: Props) {
         className="bg-white p-4 rounded-xl shadow-sm"
         collapsable={false}
       >
-        <QRCode value={qrValue} size={200} />
+        <QRCode value={qrValue} size={qrSize} />
       </View>
       <TouchableOpacity
         className="mt-3 px-5 py-2.5 bg-blue-600 rounded-lg"

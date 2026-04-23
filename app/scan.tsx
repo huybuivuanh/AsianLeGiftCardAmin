@@ -1,19 +1,18 @@
 import { getCard, updateCard } from "@/lib/cards";
 import { GiftCard } from "@/lib/types";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
-  Dimensions,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
-
-const SCREEN_HEIGHT = Dimensions.get("window").height;
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -22,9 +21,27 @@ export default function ScanScreen() {
   const [notFound, setNotFound] = useState(false);
   const [balance, setBalance] = useState("");
   const [saving, setSaving] = useState(false);
-  const sheetAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
+  const sheetAnim = useRef(new Animated.Value(height)).current;
+  const isSheetOpenRef = useRef(false);
+
+  const scanFrameSize = useMemo(() => {
+    const max = 320;
+    const min = 200;
+    const sizeFromWidth = Math.floor(width * 0.62);
+    return Math.max(min, Math.min(max, sizeFromWidth));
+  }, [width]);
+
+  useEffect(() => {
+    if (!isSheetOpenRef.current) {
+      sheetAnim.setValue(height);
+    }
+  }, [height, sheetAnim]);
 
   const openSheet = () => {
+    isSheetOpenRef.current = true;
     Animated.spring(sheetAnim, {
       toValue: 0,
       useNativeDriver: true,
@@ -33,8 +50,9 @@ export default function ScanScreen() {
   };
 
   const closeSheet = () => {
+    isSheetOpenRef.current = false;
     Animated.timing(sheetAnim, {
-      toValue: SCREEN_HEIGHT,
+      toValue: height,
       duration: 250,
       useNativeDriver: true,
     }).start(() => {
@@ -118,7 +136,10 @@ export default function ScanScreen() {
       />
 
       <View className="absolute inset-0 justify-center items-center">
-        <View className="w-56 h-56 border-2 border-white rounded-xl" />
+        <View
+          className="border-2 border-white rounded-xl"
+          style={{ width: scanFrameSize, height: scanFrameSize }}
+        />
         <Text className="text-white mt-4 text-sm opacity-80">
           Align QR code within the frame
         </Text>
@@ -126,8 +147,12 @@ export default function ScanScreen() {
 
       {/* Bottom sheet — uses Animated.Value for slide-in so style prop is required */}
       <Animated.View
-        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 pb-10"
-        style={{ transform: [{ translateY: sheetAnim }], elevation: 10 }}
+        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6"
+        style={{
+          transform: [{ translateY: sheetAnim }],
+          elevation: 10,
+          paddingBottom: Math.max(16, insets.bottom + 16),
+        }}
       >
         {notFound ? (
           <>
