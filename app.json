@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "Asian Le Gift Card",
-    "slug": "AsianLeGiftCardAmin",
+    "slug": "AsianLeGiftCardAdmin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/Asian Le Gift Card.png",
-    "scheme": "asianlegiftcardamin",
+    "scheme": "asianlegiftcardadmin",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -14,28 +14,41 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.buivuanhhuy.AsianLeGiftCardAdmin",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.buivuanhhuy.AsianLeGiftCardAdmin",
       "adaptiveIcon": {
         "foregroundImage": "./assets/Asian Le Gift Card.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/Asian Le Gift Card.png"
     },
-    "plugins": ["expo-router", "expo-camera"],
+    "plugins": [
+      "expo-router",
+      "expo-camera"
+    ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "95fd64a3-693e-4dc4-8ec4-f3d70030b3f6"
+        "projectId": "e1828606-a5bf-4e83-bbf2-1d8c68f45b8b"
       }
     }
   }

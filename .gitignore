@@ -42,3 +42,9 @@ yarn-error.*
 /android
 
 .firebase/
+
+# local tooling / agent folders
+.agents/
+.claude/
+.cursor/
+.vscode/

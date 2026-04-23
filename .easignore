@@ -1,0 +1,17 @@
+.git/
+.expo/
+.firebase/
+.vscode/
+.claude/
+.agents/
+.cursor/
+
+node_modules/
+
+dist/
+web-build/
+
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
