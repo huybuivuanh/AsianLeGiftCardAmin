@@ -3,6 +3,7 @@ import CardRow, {
   giftCardMatchesListFilter,
 } from "@/components/CardRow";
 import DropdownPicker from "@/components/DropdownPicker";
+import { signOut } from "@/lib/auth";
 import { subscribeCards } from "@/lib/cards";
 import { GiftCard } from "@/lib/types";
 import { useNavigation } from "@react-navigation/native";
@@ -12,6 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -52,8 +54,41 @@ export default function CardListScreen() {
     return unsubscribe;
   }, []);
 
+  const handleSignOut = () => {
+    if (Platform.OS === "web") {
+      const ok = window.confirm("Are you sure you want to sign out?");
+      if (!ok) return;
+      signOut().catch(() => Alert.alert("Error", "Failed to sign out."));
+      return;
+    }
+
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await signOut();
+          } catch {
+            Alert.alert("Error", "Failed to sign out.");
+          }
+        },
+      },
+    ]);
+  };
+
   useEffect(() => {
     navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={handleSignOut}
+          className="ml-1"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text className="text-red-500 text-base font-semibold">Sign Out</Text>
+        </TouchableOpacity>
+      ),
       headerRight: () => (
         <TouchableOpacity
           onPress={() => router.push("/scan")}
