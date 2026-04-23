@@ -7,7 +7,7 @@ type Props = {
 };
 
 export default function CardRow({ card, onPress }: Props) {
-  const isDepleted = card.balance === 0;
+  const isDepleted = card.balance === 0 || card.originalBalance === 0;
   return (
     <TouchableOpacity
       className={`my-1.5 rounded-2xl bg-white px-3 py-2.5 border border-gray-200 shadow-sm flex-row items-center ${isDepleted ? "opacity-50" : ""}`}

@@ -18,9 +18,10 @@ export default function CreateScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    const amount = parseFloat(balance);
-    if (isNaN(amount) || amount <= 0) {
-      setBalanceError("Balance must be a positive number.");
+    const trimmedBalance = balance.trim();
+    const amount = trimmedBalance === "" ? 0 : parseFloat(trimmedBalance);
+    if (isNaN(amount) || amount < 0) {
+      setBalanceError("Balance must be 0 or a positive number.");
       return;
     }
     setBalanceError("");

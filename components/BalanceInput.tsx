@@ -21,7 +21,7 @@ export default function BalanceInput({
         value={value}
         onChangeText={onChange}
         keyboardType="decimal-pad"
-        placeholder="0.00"
+        placeholder="0"
       />
       {error ? <Text className="text-red-500 text-xs mt-1">{error}</Text> : null}
     </View>

@@ -12,8 +12,6 @@ import {
 import QRCode from "react-native-qrcode-svg";
 import { captureRef } from "react-native-view-shot";
 
-const PADDING = 24;
-
 type Props = {
   cardId: string;
 };
@@ -22,29 +20,38 @@ export default function QRDisplay({ cardId }: Props) {
   const { width } = useWindowDimensions();
   const qrRef = useRef<View>(null);
   const qrValue = `${QR_BASE_URL}/${cardId}`;
-  const qrSize = Math.max(150, Math.min(300, Math.floor(width - 128)));
-
-  const downloadOnWeb = async () => {
-    // Dynamic import so the qrcode package is never bundled for native
-    const QRCodeLib = await import("qrcode");
-    const dataUrl = await QRCodeLib.default.toDataURL(qrValue, {
-      margin: 2,
-      width: qrSize + PADDING * 2,
-      color: { dark: "#000000", light: "#ffffff" },
-    });
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `giftcard-${cardId}.png`;
-    a.click();
-  };
+  // Single sizing rule across web + mobile
+  const qrSize = Math.max(150, Math.min(200, Math.floor(width - 140)));
 
   const handleDownload = async () => {
     try {
+      const uri = await captureRef(qrRef, { format: "png", quality: 1 });
+
       if (Platform.OS === "web") {
-        await downloadOnWeb();
+        const filename = `giftcard-${cardId}.png`;
+        let href = uri;
+        let objectUrlToRevoke: string | null = null;
+
+        // On web, captureRef may return a non-data URI. Convert to blob URL for download.
+        if (!href.startsWith("data:")) {
+          const res = await fetch(href);
+          const blob = await res.blob();
+          objectUrlToRevoke = URL.createObjectURL(blob);
+          href = objectUrlToRevoke;
+        }
+
+        const a = document.createElement("a");
+        a.href = href;
+        a.download = filename;
+        a.rel = "noreferrer";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        if (objectUrlToRevoke) URL.revokeObjectURL(objectUrlToRevoke);
         return;
       }
-      const uri = await captureRef(qrRef, { format: "png", quality: 1 });
+
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
         Alert.alert("Unavailable", "Sharing is not available on this device.");

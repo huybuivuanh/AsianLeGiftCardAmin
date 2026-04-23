@@ -47,7 +47,7 @@ export async function createCard(
     label: data.label || "",
     balance: data.balance,
     originalBalance: data.balance,
-    active: true,
+    archived: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
