@@ -1,6 +1,12 @@
 import BalanceInput from "@/components/BalanceInput";
 import QRDisplay from "@/components/QRDisplay";
-import { deleteCard, getCard, updateCard } from "@/lib/cards";
+import {
+  archiveCard,
+  deleteCard,
+  getCard,
+  unarchiveCard,
+  updateCard,
+} from "@/lib/cards";
 import { GiftCard } from "@/lib/types";
 import { useNavigation } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -24,6 +30,7 @@ export default function CardDetailScreen() {
   const [balance, setBalance] = useState("");
   const [balanceError, setBalanceError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [archiving, setArchiving] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -64,6 +71,68 @@ export default function CardDetailScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const runArchive = async () => {
+    if (!id || !card) return;
+    setArchiving(true);
+    try {
+      await archiveCard(id);
+      router.dismiss();
+    } catch {
+      Alert.alert("Error", "Failed to archive card.");
+    } finally {
+      setArchiving(false);
+    }
+  };
+
+  const handleArchive = () => {
+    if (!id || !card || card.archived) return;
+
+    if (Platform.OS === "web") {
+      const ok = window.confirm(
+        "Archive this card? It will show under the Archived filter on the home list.",
+      );
+      if (!ok) return;
+      void runArchive();
+      return;
+    }
+
+    Alert.alert(
+      "Archive Card",
+      "This card will appear under the Archived filter. You can unarchive it later.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Archive", onPress: () => void runArchive() },
+      ],
+    );
+  };
+
+  const runUnarchive = async () => {
+    if (!id || !card) return;
+    setArchiving(true);
+    try {
+      await unarchiveCard(id);
+      router.dismiss();
+    } catch {
+      Alert.alert("Error", "Failed to unarchive card.");
+    } finally {
+      setArchiving(false);
+    }
+  };
+
+  const handleUnarchive = () => {
+    if (!id || !card || !card.archived) return;
+
+    if (Platform.OS === "web") {
+      void runUnarchive();
+      return;
+    }
+
+    Alert.alert("Unarchive Card", "Restore this card to the active list?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Unarchive", onPress: () => void runUnarchive() },
+    ]);
   };
 
   const handleDelete = () => {
@@ -140,18 +209,41 @@ export default function CardDetailScreen() {
       </View>
 
       <TouchableOpacity
-        className={`bg-blue-600 py-3.5 rounded-lg items-center mt-2 ${saving || !card ? "opacity-60" : ""}`}
+        className={`bg-blue-600 py-3.5 rounded-lg items-center mt-2 ${saving || !card || archiving ? "opacity-60" : ""}`}
         onPress={handleSave}
-        disabled={saving || !card}
+        disabled={saving || !card || archiving}
       >
         <Text className="text-white font-bold text-base">
           {saving ? "Saving..." : "Save"}
         </Text>
       </TouchableOpacity>
 
+      {card?.archived ? (
+        <TouchableOpacity
+          className={`mt-3 py-3.5 rounded-lg items-center border border-green-600 ${archiving || saving ? "opacity-60" : ""}`}
+          onPress={handleUnarchive}
+          disabled={archiving || saving || !card}
+        >
+          <Text className="text-green-700 font-semibold text-base">
+            {archiving ? "Restoring..." : "Unarchive"}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          className={`mt-3 py-3.5 rounded-lg items-center border border-gray-400 ${archiving || saving || !card ? "opacity-60" : ""}`}
+          onPress={handleArchive}
+          disabled={archiving || saving || !card}
+        >
+          <Text className="text-gray-800 font-semibold text-base">
+            {archiving ? "Archiving..." : "Archive"}
+          </Text>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
-        className="mt-3 py-3.5 rounded-lg items-center border border-red-500"
+        className={`mt-3 py-3.5 rounded-lg items-center border border-red-500 ${archiving || saving ? "opacity-60" : ""}`}
         onPress={handleDelete}
+        disabled={archiving || saving}
       >
         <Text className="text-red-500 font-semibold text-base">
           Delete Card
