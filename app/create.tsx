@@ -2,11 +2,13 @@ import { createCard } from "@/lib/cards";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function CreateScreen() {
@@ -15,6 +17,7 @@ export default function CreateScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    setLoading(true);
     try {
       await createCard({ label: label.trim(), balance: 0 });
       router.back();
@@ -43,9 +46,14 @@ export default function CreateScreen() {
         onPress={handleSubmit}
         disabled={loading}
       >
-        <Text className="text-white font-bold text-base">
-          {loading ? "Creating..." : "Create Card"}
-        </Text>
+        {loading ? (
+          <View className="flex-row items-center gap-2">
+            <ActivityIndicator color="white" size="small" />
+            <Text className="text-white font-bold text-base">Creating...</Text>
+          </View>
+        ) : (
+          <Text className="text-white font-bold text-base">Create Card</Text>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );

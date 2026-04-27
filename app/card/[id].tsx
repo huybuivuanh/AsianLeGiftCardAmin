@@ -9,9 +9,10 @@ import {
 } from "@/lib/cards";
 import { GiftCard } from "@/lib/types";
 import { useNavigation } from "@react-navigation/native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   ScrollView,
@@ -21,11 +22,15 @@ import {
   View,
 } from "react-native";
 
+const PIN_MAX_LENGTH =
+  process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN?.length ?? 8;
+
 export default function CardDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const navigation = useNavigation();
   const [card, setCard] = useState<GiftCard | null>(null);
+  const [loading, setLoading] = useState(true);
   const [label, setLabel] = useState("");
   const [balance, setBalance] = useState("");
   const [redeemAmount, setRedeemAmount] = useState("");
@@ -38,25 +43,36 @@ export default function CardDetailScreen() {
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await getCard(id);
-        if (!data) {
-          Alert.alert("Error", "Card not found.");
+  useFocusEffect(
+    useCallback(() => {
+      setRedeemAmount("");
+      setRedeemError("");
+      setOriginalBalanceError("");
+      setIsOriginalEditable(false);
+      setShowPinEntry(false);
+      setPinEntry("");
+      setLoading(true);
+      (async () => {
+        try {
+          const data = await getCard(id);
+          if (!data) {
+            Alert.alert("Error", "Card not found.");
+            router.back();
+            return;
+          }
+          setCard(data);
+          setLabel(data.label || "");
+          setBalance(data.balance.toFixed(2));
+          setOriginalBalance(data.originalBalance.toFixed(2));
+        } catch {
+          Alert.alert("Error", "Failed to load card.");
           router.back();
-          return;
+        } finally {
+          setLoading(false);
         }
-        setCard(data);
-        setLabel(data.label || "");
-        setBalance(data.balance.toFixed(2));
-        setOriginalBalance(data.originalBalance.toFixed(2));
-      } catch {
-        Alert.alert("Error", "Failed to load card.");
-        router.back();
-      }
-    })();
-  }, [id]);
+      })();
+    }, [id]),
+  );
 
   useEffect(() => {
     navigation.setOptions({ title: "Card Details" });
@@ -92,11 +108,11 @@ export default function CardDetailScreen() {
     setOriginalBalanceError("");
     setSaving(true);
     try {
-      await updateCard(id, {
-        label: label.trim(),
-        balance: newBalance,
-        originalBalance: originalAmount,
-      }, didRedeem);
+      await updateCard(
+        id,
+        { label: label.trim(), balance: newBalance, originalBalance: originalAmount },
+        didRedeem,
+      );
       router.dismiss();
     } catch {
       Alert.alert("Error", "Failed to save changes.");
@@ -109,7 +125,7 @@ export default function CardDetailScreen() {
     "ok" | "cancel" | "wrong"
   > => {
     const pin = process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN;
-    if (!pin) return "ok"; // no pin configured
+    if (!pin) return "ok";
 
     if (Platform.OS === "web") {
       const entered = window.prompt("Enter PIN to edit original balance");
@@ -118,7 +134,6 @@ export default function CardDetailScreen() {
     }
 
     if (Platform.OS !== "ios") {
-      // Alert.prompt is iOS-only; Android uses inline PIN UI.
       return "cancel";
     }
 
@@ -152,7 +167,6 @@ export default function CardDetailScreen() {
       Alert.alert("Denied", "Incorrect PIN.");
       return;
     }
-    // Focus is handled by user tapping into the input; this just gates enabling editing.
     setIsOriginalEditable(true);
   };
 
@@ -164,6 +178,7 @@ export default function CardDetailScreen() {
       return;
     }
     if (pinEntry !== pin) {
+      setPinEntry("");
       Alert.alert("Denied", "Incorrect PIN.");
       return;
     }
@@ -268,6 +283,14 @@ export default function CardDetailScreen() {
     ]);
   };
 
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   return (
     <ScrollView
       className="flex-1 bg-white"
@@ -323,6 +346,7 @@ export default function CardDetailScreen() {
               placeholder="PIN"
               keyboardType="number-pad"
               secureTextEntry
+              maxLength={PIN_MAX_LENGTH}
             />
             <View className="flex-row gap-2 mt-2">
               <TouchableOpacity
@@ -351,6 +375,7 @@ export default function CardDetailScreen() {
           onChangeText={(v) => {
             if (!/^\d*\.?\d{0,2}$/.test(v)) return;
             setOriginalBalance(v);
+            setOriginalBalanceError("");
             if (isOriginalEditable && parseFloat(v) > 0) setBalance(v);
           }}
           keyboardType="decimal-pad"
@@ -364,6 +389,7 @@ export default function CardDetailScreen() {
           </Text>
         ) : null}
       </View>
+
       <View className="mb-3">
         <Text className="text-xs">Card ID</Text>
         <Text className="text-xs mt-0.5">{id}</Text>
@@ -378,15 +404,15 @@ export default function CardDetailScreen() {
         <View className="mb-3">
           <Text className="text-xs">Last Redeemed</Text>
           <Text className="text-base mt-0.5">
-            {card.updatedAt.toDate().toLocaleDateString()}
+            {card.updatedAt.toDate().toLocaleString()}
           </Text>
         </View>
       ) : null}
 
       <TouchableOpacity
-        className={`bg-blue-600 py-3.5 rounded-lg items-center mt-2 ${saving || !card || archiving ? "opacity-60" : ""}`}
+        className={`bg-blue-600 py-3.5 rounded-lg items-center mt-2 ${saving || !card ? "opacity-60" : ""}`}
         onPress={handleSave}
-        disabled={saving || !card || archiving}
+        disabled={saving || !card}
       >
         <Text className="text-white font-bold text-base">
           {saving ? "Saving..." : "Save"}
@@ -395,9 +421,9 @@ export default function CardDetailScreen() {
 
       {card?.archived ? (
         <TouchableOpacity
-          className={`mt-3 py-3.5 rounded-lg items-center border border-green-600 ${archiving || saving ? "opacity-60" : ""}`}
+          className={`mt-3 py-3.5 rounded-lg items-center border border-green-600 ${archiving || !card ? "opacity-60" : ""}`}
           onPress={handleUnarchive}
-          disabled={archiving || saving || !card}
+          disabled={archiving || !card}
         >
           <Text className="text-green-700 font-semibold text-base">
             {archiving ? "Restoring..." : "Unarchive"}
@@ -405,9 +431,9 @@ export default function CardDetailScreen() {
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
-          className={`mt-3 py-3.5 rounded-lg items-center border border-gray-400 ${archiving || saving || !card ? "opacity-60" : ""}`}
+          className={`mt-3 py-3.5 rounded-lg items-center border border-gray-400 ${archiving || !card ? "opacity-60" : ""}`}
           onPress={handleArchive}
-          disabled={archiving || saving || !card}
+          disabled={archiving || !card}
         >
           <Text className="text-gray-800 font-semibold text-base">
             {archiving ? "Archiving..." : "Archive"}
