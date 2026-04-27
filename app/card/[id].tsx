@@ -123,17 +123,17 @@ export default function CardDetailScreen() {
       />
 
       <View className="mb-3">
-        <Text className="text-xs text-gray-400">Original Balance</Text>
+        <Text className="text-xs">Original Balance</Text>
         <Text className="text-base mt-0.5">
           {card ? `$${card.originalBalance.toFixed(2)}` : "—"}
         </Text>
       </View>
       <View className="mb-3">
-        <Text className="text-xs text-gray-400">Card ID</Text>
-        <Text className="text-xs text-gray-300 mt-0.5">{id}</Text>
+        <Text className="text-xs">Card ID</Text>
+        <Text className="text-xs mt-0.5">{id}</Text>
       </View>
       <View className="mb-3">
-        <Text className="text-xs text-gray-400">Created</Text>
+        <Text className="text-xs">Created</Text>
         <Text className="text-base mt-0.5">
           {card?.createdAt.toDate().toLocaleDateString() ?? "—"}
         </Text>

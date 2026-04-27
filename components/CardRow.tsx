@@ -70,11 +70,11 @@ export default function CardRow({ card, onPress }: Props) {
         >
           {card.label || "Unnamed card"}
         </Text>
-        <Text className="text-xs text-gray-400 mt-0.5">ID: {card.id}</Text>
-        <Text className="text-xs text-gray-400 mt-0.5">
+        <Text className="text-xs mt-0.5">ID: {card.id}</Text>
+        <Text className="text-xs mt-0.5">
           Created: {card.createdAt?.toDate().toLocaleDateString() ?? "—"}
         </Text>
-        <Text className="text-xs text-gray-400 mt-0.5">
+        <Text className="text-xs mt-0.5">
           Updated: {card.updatedAt?.toDate().toLocaleDateString() ?? "—"}
         </Text>
       </View>

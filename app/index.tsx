@@ -6,6 +6,7 @@ import DropdownPicker from "@/components/DropdownPicker";
 import { signOut } from "@/lib/auth";
 import { subscribeCards } from "@/lib/cards";
 import { GiftCard } from "@/lib/types";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { Timestamp } from "firebase/firestore";
@@ -94,8 +95,10 @@ export default function CardListScreen() {
           onPress={() => router.push("/scan")}
           className="mr-1"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="Scan QR code"
         >
-          <Text className="text-blue-600 text-base font-semibold">Scan</Text>
+          <Ionicons name="camera-outline" size={22} color="#2563EB" />
         </TouchableOpacity>
       ),
     });

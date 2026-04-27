@@ -1,4 +1,3 @@
-import BalanceInput from "@/components/BalanceInput";
 import { createCard } from "@/lib/cards";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -13,21 +12,11 @@ import {
 export default function CreateScreen() {
   const router = useRouter();
   const [label, setLabel] = useState("");
-  const [balance, setBalance] = useState("");
-  const [balanceError, setBalanceError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    const trimmedBalance = balance.trim();
-    const amount = trimmedBalance === "" ? 0 : parseFloat(trimmedBalance);
-    if (isNaN(amount) || amount < 0) {
-      setBalanceError("Balance must be 0 or a positive number.");
-      return;
-    }
-    setBalanceError("");
-    setLoading(true);
     try {
-      await createCard({ label: label.trim(), balance: amount });
+      await createCard({ label: label.trim(), balance: 0 });
       router.back();
     } catch {
       Alert.alert("Error", "Failed to create card.");
@@ -49,7 +38,6 @@ export default function CreateScreen() {
         onChangeText={setLabel}
         placeholder="e.g. Birthday gift"
       />
-      <BalanceInput value={balance} onChange={setBalance} error={balanceError} />
       <TouchableOpacity
         className={`bg-blue-600 py-3.5 rounded-lg items-center mt-2 ${loading ? "opacity-60" : ""}`}
         onPress={handleSubmit}

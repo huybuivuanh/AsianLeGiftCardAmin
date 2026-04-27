@@ -3,7 +3,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
-import { Platform, useColorScheme } from "react-native";
+import { Platform, Text, TouchableOpacity, useColorScheme } from "react-native";
 import "react-native-reanimated";
 import "../global.css";
 
@@ -13,6 +13,23 @@ export default function RootLayout() {
   const segments = useSegments();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const headerTitleAlign = Platform.OS === "web" ? ("center" as const) : undefined;
+  const webBack =
+    Platform.OS === "web"
+      ? (onPress: () => void) => (
+          <TouchableOpacity
+            onPress={onPress}
+            className="ml-2 flex-row items-center"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text className="text-2xl leading-none text-blue-600 -mt-0.5">
+              ‹
+            </Text>
+            <Text className="text-base font-semibold text-blue-600 ml-1">
+              Back
+            </Text>
+          </TouchableOpacity>
+        )
+      : undefined;
 
   useEffect(() => {
     return onAuthStateChanged(auth, setUser);
@@ -46,11 +63,21 @@ export default function RootLayout() {
         />
         <Stack.Screen
           name="create"
-          options={{ title: "New Card", headerTitleAlign }}
+          options={{
+            title: "New Card",
+            headerTitleAlign,
+            headerLeft: webBack ? () => webBack(() => router.back()) : undefined,
+          }}
         />
         <Stack.Screen
           name="card/[id]"
-          options={{ title: "Card Detail", headerTitleAlign }}
+          options={{
+            title: "Card Detail",
+            headerTitleAlign,
+            headerLeft: webBack
+              ? () => webBack(() => router.replace("/"))
+              : undefined,
+          }}
         />
         <Stack.Screen
           name="scan"
@@ -60,6 +87,7 @@ export default function RootLayout() {
             headerTransparent: true,
             headerTintColor: "#fff",
             headerTitleAlign,
+            headerLeft: webBack ? () => webBack(() => router.back()) : undefined,
           }}
         />
       </Stack>
