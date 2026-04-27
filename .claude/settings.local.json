@@ -4,7 +4,10 @@
       "Bash(npx expo *)",
       "Bash(npm install *)",
       "Bash(npm list *)",
-      "Bash(find D:\\\\\\\\Projects\\\\\\\\AsianLeGiftCardAmin -maxdepth 2 -name \"*.env*\" -o -name \"app.json\" -o -name \"tsconfig.json\")"
+      "Bash(find D:\\\\\\\\Projects\\\\\\\\AsianLeGiftCardAmin -maxdepth 2 -name \"*.env*\" -o -name \"app.json\" -o -name \"tsconfig.json\")",
+      "Bash(xargs cat *)",
+      "Bash(node -e \"const f = require\\('/Users/vuanhhuybui/Desktop/Data/AsianLeGiftCardAmin/node_modules/@expo/vector-icons/build/Ionicons'\\); console.log\\('font:', JSON.stringify\\(f.default?.font ?? f.font\\)\\)\")",
+      "Bash(node *)"
     ]
   }
 }

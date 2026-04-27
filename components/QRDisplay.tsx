@@ -1,5 +1,6 @@
 import { QR_BASE_URL } from "@/lib/config";
 import * as Sharing from "expo-sharing";
+import { toDataURL as qrToDataURL } from "qrcode";
 import { useRef } from "react";
 import {
   Alert,
@@ -25,33 +26,18 @@ export default function QRDisplay({ cardId }: Props) {
 
   const handleDownload = async () => {
     try {
-      const uri = await captureRef(qrRef, { format: "png", quality: 1 });
-
       if (Platform.OS === "web") {
-        const filename = `giftcard-${cardId}.png`;
-        let href = uri;
-        let objectUrlToRevoke: string | null = null;
-
-        // On web, captureRef may return a non-data URI. Convert to blob URL for download.
-        if (!href.startsWith("data:")) {
-          const res = await fetch(href);
-          const blob = await res.blob();
-          objectUrlToRevoke = URL.createObjectURL(blob);
-          href = objectUrlToRevoke;
-        }
-
+        const dataUrl = await qrToDataURL(qrValue, { width: qrSize * 2, margin: 2 });
         const a = document.createElement("a");
-        a.href = href;
-        a.download = filename;
-        a.rel = "noreferrer";
+        a.href = dataUrl;
+        a.download = `giftcard-${cardId}.png`;
         document.body.appendChild(a);
         a.click();
         a.remove();
-
-        if (objectUrlToRevoke) URL.revokeObjectURL(objectUrlToRevoke);
         return;
       }
 
+      const uri = await captureRef(qrRef, { format: "png", quality: 1 });
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
         Alert.alert("Unavailable", "Sharing is not available on this device.");

@@ -1,7 +1,9 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Stack, useRouter, useSegments } from "expo-router";
+import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
 import { Platform, Text, TouchableOpacity, useColorScheme } from "react-native";
 import "react-native-reanimated";
@@ -12,6 +14,7 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
   const [user, setUser] = useState<User | null | undefined>(undefined);
+  useFonts(Ionicons.font);
   const headerTitleAlign = Platform.OS === "web" ? ("center" as const) : undefined;
   const webBack =
     Platform.OS === "web"
