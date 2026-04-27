@@ -23,6 +23,8 @@ export default function CardDetailScreen() {
   const [label, setLabel] = useState("");
   const [balance, setBalance] = useState("");
   const [balanceError, setBalanceError] = useState("");
+  const [originalBalance, setOriginalBalance] = useState("");
+  const [originalBalanceError, setOriginalBalanceError] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function CardDetailScreen() {
         setCard(data);
         setLabel(data.label || "");
         setBalance(data.balance.toFixed(2));
+        setOriginalBalance(data.originalBalance.toFixed(2));
       } catch {
         Alert.alert("Error", "Failed to load card.");
         router.back();
@@ -49,15 +52,26 @@ export default function CardDetailScreen() {
   }, [card, navigation]);
 
   const handleSave = async () => {
-    const amount = parseFloat(balance);
+    const originalAmount = parseFloat(originalBalance);
+    if (isNaN(originalAmount) || originalAmount < 0) {
+      setOriginalBalanceError("Original balance must be a valid number.");
+      return;
+    }
+
+    const amount = isOriginalEditable ? originalAmount : parseFloat(balance);
     if (isNaN(amount) || amount < 0) {
       setBalanceError("Balance must be a valid number.");
       return;
     }
     setBalanceError("");
+    setOriginalBalanceError("");
     setSaving(true);
     try {
-      await updateCard(id, { label: label.trim(), balance: amount });
+      await updateCard(id, {
+        label: label.trim(),
+        balance: amount,
+        originalBalance: originalAmount,
+      });
       router.dismiss();
     } catch {
       Alert.alert("Error", "Failed to save changes.");
@@ -65,6 +79,44 @@ export default function CardDetailScreen() {
       setSaving(false);
     }
   };
+
+  const requireOriginalBalancePin = async (): Promise<boolean> => {
+    const pin = process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN;
+    if (!pin) return true; // no pin configured
+
+    if (Platform.OS === "web") {
+      const entered = window.prompt("Enter PIN to edit original balance");
+      return entered === pin;
+    }
+
+    return await new Promise((resolve) => {
+      Alert.prompt(
+        "PIN Required",
+        "Enter PIN to edit original balance",
+        [
+          { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+          {
+            text: "Continue",
+            onPress: (entered: string | undefined) =>
+              resolve((entered ?? "") === pin),
+          },
+        ],
+        "secure-text",
+      );
+    });
+  };
+
+  const handleEditOriginalBalance = async () => {
+    const ok = await requireOriginalBalancePin();
+    if (!ok) {
+      Alert.alert("Denied", "Incorrect PIN.");
+      return;
+    }
+    // Focus is handled by user tapping into the input; this just gates enabling editing.
+    setIsOriginalEditable(true);
+  };
+
+  const [isOriginalEditable, setIsOriginalEditable] = useState(false);
 
   const handleDelete = () => {
     if (!id) return;
@@ -123,10 +175,36 @@ export default function CardDetailScreen() {
       />
 
       <View className="mb-3">
-        <Text className="text-xs">Original Balance</Text>
-        <Text className="text-base mt-0.5">
-          {card ? `$${card.originalBalance.toFixed(2)}` : "—"}
-        </Text>
+        <View className="flex-row items-center justify-between mb-1">
+          <Text className="text-sm text-gray-600">Original Balance ($)</Text>
+          {!isOriginalEditable ? (
+            <TouchableOpacity
+              onPress={handleEditOriginalBalance}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text className="text-blue-600 font-semibold">Edit</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        <TextInput
+          className={`border rounded-lg px-3 py-2.5 text-lg ${
+            originalBalanceError ? "border-red-500" : "border-gray-300"
+          } ${!isOriginalEditable ? "bg-gray-50 text-gray-500" : ""}`}
+          value={originalBalance}
+          onChangeText={(v) => {
+            setOriginalBalance(v);
+            if (isOriginalEditable) setBalance(v);
+          }}
+          keyboardType="decimal-pad"
+          editable={isOriginalEditable}
+          selectTextOnFocus={isOriginalEditable}
+          placeholder="0"
+        />
+        {originalBalanceError ? (
+          <Text className="text-red-500 text-xs mt-1">
+            {originalBalanceError}
+          </Text>
+        ) : null}
       </View>
       <View className="mb-3">
         <Text className="text-xs">Card ID</Text>

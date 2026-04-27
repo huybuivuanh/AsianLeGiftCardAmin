@@ -56,7 +56,7 @@ export async function createCard(
 
 export async function updateCard(
   id: string,
-  data: Partial<Pick<GiftCard, "label" | "balance" | "archived">>,
+  data: Partial<Pick<GiftCard, "label" | "balance" | "archived" | "originalBalance">>,
 ): Promise<void> {
   await updateDoc(doc(db, COL, id), { ...data, updatedAt: serverTimestamp() });
 }
