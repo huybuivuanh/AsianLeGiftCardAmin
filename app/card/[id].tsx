@@ -25,6 +25,18 @@ import {
 const PIN_MAX_LENGTH =
   process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN?.length ?? 8;
 
+const PIN_NOT_CONFIGURED_MESSAGE =
+  "Original balance PIN is not set or failed to load. Set EXPO_PUBLIC_ORIGINAL_BALANCE_PIN and rebuild the app.";
+
+/** RN Web's Alert.alert is often a no-op; use the browser dialog on web. */
+function alertMessage(title: string, message: string) {
+  if (Platform.OS === "web") {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+}
+
 export default function CardDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -110,7 +122,11 @@ export default function CardDetailScreen() {
     try {
       await updateCard(
         id,
-        { label: label.trim(), balance: newBalance, originalBalance: originalAmount },
+        {
+          label: label.trim(),
+          balance: newBalance,
+          originalBalance: originalAmount,
+        },
         didRedeem,
       );
       router.dismiss();
@@ -122,14 +138,14 @@ export default function CardDetailScreen() {
   };
 
   const requireOriginalBalancePin = async (): Promise<
-    "ok" | "cancel" | "wrong"
+    "ok" | "cancel" | "wrong" | "not_configured"
   > => {
-    const pin = process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN;
-    if (!pin) return "ok";
+    const pin = process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN?.trim();
 
     if (Platform.OS === "web") {
       const entered = window.prompt("Enter PIN to edit original balance");
       if (entered === null) return "cancel";
+      if (!pin) return "not_configured";
       return entered === pin ? "ok" : "wrong";
     }
 
@@ -145,8 +161,13 @@ export default function CardDetailScreen() {
           { text: "Cancel", style: "cancel", onPress: () => resolve("cancel") },
           {
             text: "Continue",
-            onPress: (entered: string | undefined) =>
-              resolve((entered ?? "") === pin ? "ok" : "wrong"),
+            onPress: (entered: string | undefined) => {
+              if (!pin) {
+                resolve("not_configured");
+                return;
+              }
+              resolve((entered ?? "") === pin ? "ok" : "wrong");
+            },
           },
         ],
         "secure-text",
@@ -155,26 +176,29 @@ export default function CardDetailScreen() {
   };
 
   const handleEditOriginalBalance = async () => {
-    const pin = process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN;
-    if (pin && Platform.OS === "android") {
+    if (Platform.OS === "android") {
       setShowPinEntry(true);
       return;
     }
 
     const result = await requireOriginalBalancePin();
     if (result === "cancel") return;
+    if (result === "not_configured") {
+      alertMessage("Error", PIN_NOT_CONFIGURED_MESSAGE);
+      return;
+    }
     if (result !== "ok") {
-      Alert.alert("Denied", "Incorrect PIN.");
+      alertMessage("Denied", "Incorrect PIN.");
       return;
     }
     setIsOriginalEditable(true);
   };
 
   const submitAndroidPin = () => {
-    const pin = process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN;
+    const pin = process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN?.trim();
     if (!pin) {
-      setShowPinEntry(false);
-      setIsOriginalEditable(true);
+      setPinEntry("");
+      Alert.alert("Error", PIN_NOT_CONFIGURED_MESSAGE);
       return;
     }
     if (pinEntry !== pin) {
