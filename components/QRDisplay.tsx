@@ -27,10 +27,13 @@ export default function QRDisplay({ cardId }: Props) {
   const handleDownload = async () => {
     try {
       if (Platform.OS === "web") {
-        const dataUrl = await qrToDataURL(qrValue, { width: qrSize * 2, margin: 2 });
+        const dataUrl = await qrToDataURL(qrValue, {
+          width: qrSize * 2,
+          margin: 2,
+        });
         const a = document.createElement("a");
         a.href = dataUrl;
-        a.download = `giftcard-${cardId}.png`;
+        a.download = `${cardId}.png`;
         document.body.appendChild(a);
         a.click();
         a.remove();
