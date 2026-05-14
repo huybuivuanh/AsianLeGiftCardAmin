@@ -321,15 +321,15 @@ export default function CardDetailScreen() {
       contentContainerClassName="p-5"
       keyboardShouldPersistTaps="handled"
     >
-      <Text className="text-sm text-gray-600 mb-1">Label</Text>
+      <QRDisplay cardId={id} />
+
+      <Text className="text-sm text-gray-600 mb-1 mt-5">Label</Text>
       <TextInput
         className="border border-gray-300 rounded-lg px-3 py-2.5 text-base mb-4"
         value={label}
         onChangeText={setLabel}
         placeholder="e.g. Birthday gift"
       />
-
-      <QRDisplay cardId={id} />
 
       <View className="mb-4">
         <Text className="text-sm text-gray-600 mb-1">Balance ($)</Text>
@@ -354,9 +354,9 @@ export default function CardDetailScreen() {
           {!isOriginalEditable ? (
             <TouchableOpacity
               onPress={handleEditOriginalBalance}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200"
             >
-              <Text className="text-blue-600 font-semibold">Edit</Text>
+              <Text className="text-blue-600 text-sm font-semibold">Edit</Text>
             </TouchableOpacity>
           ) : null}
         </View>
