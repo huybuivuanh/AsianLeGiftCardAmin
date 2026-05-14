@@ -1,4 +1,5 @@
 import BalanceInput from "@/components/BalanceInput";
+import PinModal from "@/components/PinModal";
 import QRDisplay from "@/components/QRDisplay";
 import {
   archiveCard,
@@ -50,8 +51,8 @@ export default function CardDetailScreen() {
   const [originalBalance, setOriginalBalance] = useState("");
   const [originalBalanceError, setOriginalBalanceError] = useState("");
   const [isOriginalEditable, setIsOriginalEditable] = useState(false);
-  const [showPinEntry, setShowPinEntry] = useState(false);
-  const [pinEntry, setPinEntry] = useState("");
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinModalError, setPinModalError] = useState("");
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
 
@@ -61,8 +62,8 @@ export default function CardDetailScreen() {
       setRedeemError("");
       setOriginalBalanceError("");
       setIsOriginalEditable(false);
-      setShowPinEntry(false);
-      setPinEntry("");
+      setShowPinModal(false);
+      setPinModalError("");
       setLoading(true);
       (async () => {
         try {
@@ -137,77 +138,23 @@ export default function CardDetailScreen() {
     }
   };
 
-  const requireOriginalBalancePin = async (): Promise<
-    "ok" | "cancel" | "wrong" | "not_configured"
-  > => {
-    const pin = process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN?.trim();
-
-    if (Platform.OS === "web") {
-      const entered = window.prompt("Enter PIN to edit original balance");
-      if (entered === null) return "cancel";
-      if (!pin) return "not_configured";
-      return entered === pin ? "ok" : "wrong";
-    }
-
-    if (Platform.OS !== "ios") {
-      return "cancel";
-    }
-
-    return await new Promise((resolve) => {
-      Alert.prompt(
-        "PIN Required",
-        "Enter PIN to edit original balance",
-        [
-          { text: "Cancel", style: "cancel", onPress: () => resolve("cancel") },
-          {
-            text: "Continue",
-            onPress: (entered: string | undefined) => {
-              if (!pin) {
-                resolve("not_configured");
-                return;
-              }
-              resolve((entered ?? "") === pin ? "ok" : "wrong");
-            },
-          },
-        ],
-        "secure-text",
-      );
-    });
+  const handleEditOriginalBalance = () => {
+    setPinModalError("");
+    setShowPinModal(true);
   };
 
-  const handleEditOriginalBalance = async () => {
-    if (Platform.OS === "android") {
-      setShowPinEntry(true);
-      return;
-    }
-
-    const result = await requireOriginalBalancePin();
-    if (result === "cancel") return;
-    if (result === "not_configured") {
+  const handlePinSubmit = (entered: string) => {
+    const pin = process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN?.trim();
+    if (!pin) {
+      setShowPinModal(false);
       alertMessage("Error", PIN_NOT_CONFIGURED_MESSAGE);
       return;
     }
-    if (result !== "ok") {
-      alertMessage("Denied", "Incorrect PIN.");
+    if (entered !== pin) {
+      setPinModalError("Incorrect PIN.");
       return;
     }
-    setIsOriginalEditable(true);
-  };
-
-  const submitAndroidPin = () => {
-    const pin = process.env.EXPO_PUBLIC_ORIGINAL_BALANCE_PIN?.trim();
-    if (!pin) {
-      setPinEntry("");
-      Alert.alert("Error", PIN_NOT_CONFIGURED_MESSAGE);
-      return;
-    }
-    if (pinEntry !== pin) {
-      setPinEntry("");
-      Alert.alert("Denied", "Incorrect PIN.");
-      return;
-    }
-    setShowPinEntry(false);
-    setPinEntry("");
+    setShowPinModal(false);
     setIsOriginalEditable(true);
   };
 
@@ -360,37 +307,6 @@ export default function CardDetailScreen() {
             </TouchableOpacity>
           ) : null}
         </View>
-        {showPinEntry ? (
-          <View className="mb-2">
-            <Text className="text-xs text-gray-600 mb-1">Enter PIN</Text>
-            <TextInput
-              className="border border-gray-300 rounded-lg px-3 py-2.5 text-base"
-              value={pinEntry}
-              onChangeText={setPinEntry}
-              placeholder="PIN"
-              keyboardType="number-pad"
-              secureTextEntry
-              maxLength={PIN_MAX_LENGTH}
-            />
-            <View className="flex-row gap-2 mt-2">
-              <TouchableOpacity
-                className="flex-1 py-3 rounded-lg items-center border border-gray-300"
-                onPress={() => {
-                  setShowPinEntry(false);
-                  setPinEntry("");
-                }}
-              >
-                <Text className="text-gray-800 font-semibold">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1 py-3 rounded-lg items-center bg-blue-600"
-                onPress={submitAndroidPin}
-              >
-                <Text className="text-white font-semibold">Continue</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : null}
         <TextInput
           className={`border rounded-lg px-3 py-2.5 text-lg ${
             originalBalanceError ? "border-red-500" : "border-gray-300"
@@ -474,6 +390,14 @@ export default function CardDetailScreen() {
           Delete Card
         </Text>
       </TouchableOpacity>
+
+      <PinModal
+        visible={showPinModal}
+        onCancel={() => setShowPinModal(false)}
+        onSubmit={handlePinSubmit}
+        error={pinModalError}
+        maxLength={PIN_MAX_LENGTH}
+      />
     </ScrollView>
   );
 }
