@@ -39,6 +39,19 @@ There is no lint, format, or test script configured yet.
 
 **New Architecture**: `newArchEnabled: true` in `app.config.js` — runs on Fabric/JSI. Reanimated (v4) is compatible.
 
+## Components
+
+Reusable components live in `components/`:
+- `CardRow.tsx` — single row in the card list; accepts a `CardListFilter` type
+- `BalanceInput.tsx` — numeric input for redeem/balance amounts with error display
+- `DropdownPicker.tsx` — generic labelled dropdown used for filter/sort on the list screen
+- `QRDisplay.tsx` — renders and exports the QR code for a card
+- `PinModal.tsx` — cross-platform PIN entry modal; used to gate editing original balance. Props: `visible`, `onCancel`, `onSubmit(pin)`, `error?`, `maxLength?`. Shows inline error on wrong PIN (keeps modal open for retry). Uses `KeyboardAvoidingView` for keyboard handling on all platforms.
+
+## PIN Protection
+
+Original balance edits are gated behind a PIN stored in `EXPO_PUBLIC_ORIGINAL_BALANCE_PIN` (env var). The PIN prompt uses `PinModal` on all platforms — do not use `Alert.prompt` or `window.prompt` for this flow.
+
 ## Key Dependencies
 
 | Package | Purpose |
