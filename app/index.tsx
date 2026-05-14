@@ -84,21 +84,21 @@ export default function CardListScreen() {
       headerLeft: () => (
         <TouchableOpacity
           onPress={handleSignOut}
-          className="ml-1"
+          className="ml-4 px-3 py-1.5 rounded-full border border-red-200 bg-red-50"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text className="text-red-500 text-base font-semibold">Sign Out</Text>
+          <Text className="text-red-500 text-sm font-semibold">Sign Out</Text>
         </TouchableOpacity>
       ),
       headerRight: () => (
         <TouchableOpacity
           onPress={() => router.push("/scan")}
-          className="mr-1"
+          className="mr-4"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"
           accessibilityLabel="Scan QR code"
         >
-          <Ionicons name="camera-outline" size={22} color="#2563EB" />
+          <Ionicons name="camera-outline" size={28} color="#2563EB" />
         </TouchableOpacity>
       ),
     });
