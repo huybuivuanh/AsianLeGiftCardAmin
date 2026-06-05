@@ -2,9 +2,11 @@ import BalanceInput from "@/components/BalanceInput";
 import PinModal from "@/components/PinModal";
 import QRDisplay from "@/components/QRDisplay";
 import {
+  activateCard,
   archiveCard,
   deleteCard,
   getCard,
+  redeemCard,
   unarchiveCard,
   updateCard,
 } from "@/lib/cards";
@@ -121,15 +123,13 @@ export default function CardDetailScreen() {
     setOriginalBalanceError("");
     setSaving(true);
     try {
-      await updateCard(
-        id,
-        {
-          label: label.trim(),
-          balance: newBalance,
-          originalBalance: originalAmount,
-        },
-        didRedeem,
-      );
+      if (isOriginalEditable && !card.createdAt) {
+        await activateCard(id, { label: label.trim(), originalBalance: originalAmount, balance: newBalance });
+      } else if (didRedeem) {
+        await redeemCard(id, { label: label.trim(), balance: newBalance });
+      } else {
+        await updateCard(id, { label: label.trim(), balance: newBalance, originalBalance: originalAmount });
+      }
       router.dismiss();
     } catch {
       Alert.alert("Error", "Failed to save changes.");
@@ -337,7 +337,7 @@ export default function CardDetailScreen() {
       <View className="mb-3">
         <Text className="text-xs">Created</Text>
         <Text className="text-base mt-0.5">
-          {card?.createdAt.toDate().toLocaleDateString() ?? "—"}
+          {card?.createdAt?.toDate().toLocaleDateString() ?? "—"}
         </Text>
       </View>
       {card?.updatedAt ? (
